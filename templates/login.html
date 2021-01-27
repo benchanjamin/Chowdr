@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    .form-container {
+    padding: 50px;
+}
+
+form.account-form > * {
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+form.account-form h1 {
+    text-align: center;
+}
+form.account-form button {
+    float: right;
+}
+
+form.account-form {
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 450px;
+    background-color: #c9c9c9;
+    border: 1px solid gray;
+    border-radius: 5px;
+    padding: 10px;
+}
+
+.error-msg {
+    text-align: center;
+}
+  </style>
+</head>
+<body>
+     <div class="form-container">
+        <form action="" method="POST" class="account-form">
+            <h1>Login to PyPI</h1>
+
+            <input name="email" type="text" placeholder=" Your email address" class="form-control" value="{{ email }}">
+            <input name="password" type="password" placeholder=" Password" class="form-control" value="{{ password }}">
+            <button type="submit" class="btn btn-danger">Register</button>
+            <div style="clear: both;"></div>
+
+            {% if error %}
+                <div class="error-msg">{{ error }}</div>
+            {% endif %}
+        </form>
+    </div>
+</body>
+</html>

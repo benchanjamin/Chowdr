@@ -24,7 +24,7 @@ class User(db.Model):
     left_swipes = db.Column(db.Integer, default=0, nullable=False)
     right_swipes = db.Column(db.Integer, default=0, nullable=False)
     breed_scores = db.Column(db.String(100000), nullable=True)
-    like_to_dislike_ratio = db.Column(db.Float(precision=3), nullable=True)
+    like_to_dislike_ratio = db.Column(db.Float(precision=3), nullable=False, default=0)
 
 
 @app.route('/', methods=['GET'])

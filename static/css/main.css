@@ -11,6 +11,13 @@ body {
   font-weight: 100;
 }
 
+.header {
+  overflow: hidden;
+  position: fixed;
+  top: 0;
+  width: 100%;
+}
+
 .nav-border {
   background-color: #ef798a;
   height: 89px;
@@ -64,13 +71,13 @@ img {
 
 .nav {
   background: #495867;
-  height: 80px;
+  height: 78px;
   width: 100%;
   box-shadow: 0 3px 3px 0 rgba(0, 0, 0, 0.2);
 }
 
 .nav ul {
-  height: 80px;
+  height: 78px;
   list-style: none;
   margin: 0 auto;
   padding: 0;
@@ -80,17 +87,17 @@ img {
   color: #f7f7ff;
   display: inline-block;
   font-weight: bold;
-  height: 80px;
-  line-height: 80px;
+  height: 78px;
+  line-height: 78px;
   list-style: none;
   padding: 0 10px;
   transition: background 0.5s;
 }
 
 .page-wrapper {
-  margin: 0 auto;
+  margin: auto;
   text-align: center;
-  display: inline;
+  padding-top: 150px;
 }
 
 .log-in {

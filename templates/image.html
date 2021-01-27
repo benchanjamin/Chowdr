@@ -4,8 +4,10 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Document</title>
+	<title>Home</title>
   <link rel="stylesheet" href="/static/css/main.css"/>
+
+
 </head>
 
 <body>
@@ -14,7 +16,7 @@
       <div class="nav">
         <div class="container">
           <ul>
-            <li class="Home">Home</li>
+            <li class="Home" onclick="location.href='/';">Home</li>
             <li>Profile</li>
             <li class="log-in" onclick="location.href='/login';">Log In</li>
           </ul>
@@ -37,12 +39,14 @@
     </form>
   </div>
 
-<input class="input" name="swiperName" type="text" placeholder="Your name">
 {% if user %}
-  <h1>{{ user.name }}</h1>
-  <h1>{{ user.left_swipes }}</h1>
-  <h1>{{ user.right_swipes }}</h1>
+  <h1>Your Like to Dislike Ratio: {{ user.like_to_dislike_ratio }}</h1>
 {% endif %}
+
+{% if not user %}
+  <h1>Please register or login to save your data</h1>
+{% endif %}
+
 </body>
 
 </html>

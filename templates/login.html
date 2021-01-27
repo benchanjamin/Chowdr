@@ -3,50 +3,34 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
-  <style>
-    .form-container {
-    padding: 50px;
-}
+  <title>Chowdr</title>
+  <link rel="stylesheet" href="/static/css/login.css"/>
 
-form.account-form > * {
-    margin-top: 5px;
-    margin-bottom: 5px;
-}
-
-form.account-form h1 {
-    text-align: center;
-}
-form.account-form button {
-    float: right;
-}
-
-form.account-form {
-    margin-left: auto;
-    margin-right: auto;
-    max-width: 450px;
-    background-color: #c9c9c9;
-    border: 1px solid gray;
-    border-radius: 5px;
-    padding: 10px;
-}
-
-.error-msg {
-    text-align: center;
-}
-  </style>
-</head>
 <body>
-     <div class="form-container">
-        <form action="{{ url_for('login_post') }}" method="POST" class="account-form">
-            <h1>Login</h1>
+    <div class="header">
+      <div class="nav-border">
+        <div class="nav">
+          <div class="container">
+            <ul>
+              <li class="Home" onclick="location.href='/';"">Home</li>
+              <li href="#">Profile</li>
+              <li class="log-in" onclick="location.href='/login';">Log In</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <h1>Log In</h1>
+    <div class="form-container">
+      <form action="{{ url_for('login_post') }}" method="POST" class="account-form">
 
-            <input name="email" type="text" placeholder=" Your email address" class="form-control" value="{{ email }}">
-            <input name="password" type="password" placeholder=" Password" class="form-control" value="{{ password }}">
-            <button type="submit" name="submit_button" class="btn" value="Register">Register</button>
-            <button type="submit" name="submit_button"  class="btn" value="Login">Login</button>
-            <button type="submit" name="submit_button"  class="btn" value="Back">Back</button>
-            <div style="clear: both;"></div>
+        <input name="email" type="text" placeholder=" Your email address" class="form-control" value="{{ email }}">
+        <input name="password" type="password" placeholder=" Password" class="form-control" value="{{ password }}">
+        <button type="submit" name="submit_button" class="btn login" value="Login">Log In</button>
+        <button type="submit" name="submit_button" class="btn reg" value="Register">Register</button>
+        <button type="submit" name="submit_button" class="btn back" value="Back">Back</button>
+        <div style="clear: both;"></div>
 
             {% if error %}
                 <div class="error-msg">{{ error }}</div>

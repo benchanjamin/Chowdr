@@ -1,10 +1,116 @@
+html,
 body {
-  font-family: 'sans-serif';
+  background-color: #f7f7ff;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-div.page-wrapper {
+body {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 100;
+}
+
+.nav-border {
+  background-color: #ef798a;
+  height: 89px;
+}
+
+.btn {
+  color: #f7f7ff;
+  border: none;
+  width: 60px;
+  height: 60px;
+  border-radius: 100%;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 32px;
+  transition: background 0.5s;
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+.left {
+  background-color: #ffabab;
+}
+
+.right {
+  background-color: #c7ffab;
+}
+
+.polaroid {
+  display: inline-block;
+  vertical-align: middle;
+  margin: auto;
+  width: 60%;
+  background-color: white;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  margin-bottom: 20px;
+  margin-top: 20px;
+}
+
+.polaroid .container {
+  text-align: center;
+  font-weight: bold;
+  padding: 10px 20px;
+}
+
+img {
+  vertical-align: middle;
+  width: 100%;
+  height: auto;
+  box-shadow: 0 3px 3px 0 rgba(0, 0, 0, 0.2);
+}
+
+.nav {
+  background: #495867;
+  height: 80px;
+  width: 100%;
+  box-shadow: 0 3px 3px 0 rgba(0, 0, 0, 0.2);
+}
+
+.nav ul {
+  height: 80px;
+  list-style: none;
+  margin: 0 auto;
+  padding: 0;
+}
+
+.nav ul li {
+  color: #f7f7ff;
+  display: inline-block;
+  font-weight: bold;
+  height: 80px;
+  line-height: 80px;
+  list-style: none;
+  padding: 0 10px;
+  transition: background 0.5s;
+}
+
+.page-wrapper {
   margin: 0 auto;
   text-align: center;
   display: inline;
 }
 
+.log-in {
+  color: #d6d6ff;
+}
+
+.nav ul li:hover {
+  background: #577399;
+  cursor: pointer;
+  transition: background 0.5s;
+}
+
+.right:hover {
+  background: #79b57f;
+  cursor: pointer;
+  transition: background 0.5s;
+}
+
+.left:hover {
+  background: #b57979;
+  cursor: pointer;
+  transition: background 0.5s;
+}

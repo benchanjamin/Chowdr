@@ -5,22 +5,44 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Document</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <link rel="stylesheet" href="/static/css/main.css"/>
 </head>
 
 <body>
+  <div class="header">
+    <div class="nav-border">
+      <div class="nav">
+        <div class="container">
+          <ul>
+            <li class="Home">Home</li>
+            <li>Profile</li>
+            <li class="log-in" onclick="location.href='/login';">Log In</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="page-wrapper">
-    <h1>Image</h1>
-    <img id="image" src='{{url}}'></img>
     <form method="POST">
-      <button type="submit" name="submit_button" value="Left">Swipe Left</button>
-      <button type="submit" name="submit_button" value="Right">Swipe Right</button>
+      <button class="btn left" type="submit" name="submit_button" value="Left">&lt</button>
+      <div class="polaroid">
+        <img class="dog" id="image" src='{{ url }}'>
+        <div class="container">
+          <p>Say hi to this {{breed_name}}!</p>
+        </div>
+      </div>
+      <button class="btn right" type="submit" name="submit_button" value="Right">&gt</button>
+      <input type="hidden" name="breed_id" value="{{ breed_id }}">
     </form>
   </div>
+
+<input class="input" name="swiperName" type="text" placeholder="Your name">
+{% if user %}
+  <h1>{{ user.name }}</h1>
+  <h1>{{ user.left_swipes }}</h1>
+  <h1>{{ user.right_swipes }}</h1>
+{% endif %}
 </body>
-<script>
-  let swipeLeft = () => {};
-  let swipeRight = () => {};
-</script>
 
 </html>

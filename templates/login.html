@@ -38,12 +38,14 @@ form.account-form {
 </head>
 <body>
      <div class="form-container">
-        <form action="" method="POST" class="account-form">
-            <h1>Login to PyPI</h1>
+        <form action="{{ url_for('login_post') }}" method="POST" class="account-form">
+            <h1>Login</h1>
 
             <input name="email" type="text" placeholder=" Your email address" class="form-control" value="{{ email }}">
             <input name="password" type="password" placeholder=" Password" class="form-control" value="{{ password }}">
-            <button type="submit" class="btn btn-danger">Register</button>
+            <button type="submit" name="submit_button" class="btn" value="Register">Register</button>
+            <button type="submit" name="submit_button"  class="btn" value="Login">Login</button>
+            <button type="submit" name="submit_button"  class="btn" value="Back">Back</button>
             <div style="clear: both;"></div>
 
             {% if error %}

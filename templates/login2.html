@@ -24,7 +24,7 @@
 
     <h1>Log In</h1>
     <div class="form-container">
-      <form action="{{ url_for('register_post') }}" method="POST" class="account-form" novalidate>
+      <form action="{{ url_for('login_post') }}" method="POST" class="account-form" novalidate>
       {{ form.hidden_tag() }}
         {{ form.username(class = "form-control", placeholder = "Username") }}
         {{ form.password(class = "form-control", placeholder = "Password") }}

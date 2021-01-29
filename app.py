@@ -6,25 +6,54 @@ import numpy as np
 from random import randint
 import tensorflow as tf
 import os
+import datetime
+from flask_login import LoginManager
+from config import Config
+from flask_wtf import FlaskForm
+from wtforms import StringField, PasswordField, BooleanField, SubmitField
+from wtforms.validators import DataRequired, Length, EqualTo
+from flask_migrate import Migrate
+
+
+# ################### CONFIG #################################
 
 app = Flask(__name__, template_folder='templates')
 app.config['DEBUG'] = True
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db/hackathon.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
-app.config['SECRET_KEY'] = 'secret'
+app.config.from_object(Config)
+
+
+# ################### INIT #################################
+
 
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
+login_manager = LoginManager()
 model = -1  # initialized later
 breeds_arr = -1  # initialized later
 user = -1  # initialized on login
 
 
+# ################### DATABASE #################################
+
+
 class User(db.Model):
-    name = db.Column(db.String(50), primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    username = db.Column(db.String, nullable=True)
+    email = db.Column(db.String, index=True, unique=True, nullable=True)
+    hashed_password = db.Column(db.String, nullable=True, index=True)
+    created_date = db.Column(db.DateTime, default=datetime.datetime.now, index=True)
     left_swipes = db.Column(db.Integer, default=0, nullable=False)
     right_swipes = db.Column(db.Integer, default=0, nullable=False)
-    breed_scores = db.Column(db.String(100000), nullable=True)
+    breed_scores = db.Column(db.String, nullable=True)
     like_to_dislike_ratio = db.Column(db.Float(precision=3), nullable=False, default=0)
+
+    def __repr__(self):
+        return '<User {}>'.format(self.username)
+
+
+# ################### INDEX #################################
 
 
 @app.route('/', methods=['GET'])
@@ -115,9 +144,20 @@ def index_post():
         db.session.commit()
         return redirect(url_for('.index_get'))
 
+
+# ################### LOGIN #################################
+
+class LoginForm(FlaskForm):
+    username = StringField('email', validators=[DataRequired()])
+    password = PasswordField('password', validators=[DataRequired()])
+    remember_me = BooleanField('Remember Me')
+    submit = SubmitField('Log In')
+
+
 @app.route('/login', methods=["GET"])
 def login_get():
-  return render_template("login.html")
+    form = LoginForm()
+    return render_template("login2.html", form=form)
 
 
 @app.route('/login', methods=['POST'])
@@ -156,6 +196,85 @@ def load_model(email=None):
     elif model == -1:
         model = tf.keras.models.load_model('./breed_model')
 
+
+# ################### REGISTER #################################
+
+class RegistrationForm(FlaskForm):
+    username = StringField('Username', [Length(min=4, max=25)])
+    email = StringField('Email Address', [Length(min=6, max=35)])
+    password = PasswordField('New Password', [
+        DataRequired(),
+        EqualTo('confirm', message='Passwords must match')
+    ])
+    confirm = PasswordField('Repeat Password')
+    submit = SubmitField('Register')
+
+
+'''
+
+@app.route('/account/register', methods=['GET'])
+@response(template_file='account/register.html')
+def register_get():
+    return {
+        'user_id': cookie_auth.get_user_id_via_auth_cookie(flask.request),
+    }
+
+
+@app.route('/account/register', methods=['POST'])
+@response(template_file='account/register.html')
+def register_post():
+    data = request_dict.create(default_val='')
+
+    name = data.name
+    email = data.email.lower().strip()
+    password = data.password.strip()
+
+    if not name or not email or not password:
+        return {
+            'name': name,
+            'email': email,
+            'password': password,
+            'error': "Some required fields are missing.",
+            'user_id': cookie_auth.get_user_id_via_auth_cookie(flask.request),
+        }
+
+    user = user_service.create_user(name, email, password)
+    if not user:
+        return {
+            'name': name,
+            'email': email,
+            'password': password,
+            'error': "A user with that email already exists.",
+            'user_id': cookie_auth.get_user_id_via_auth_cookie(flask.request),
+        }
+
+    resp = flask.redirect('/account')
+    cookie_auth.set_auth(resp, user.id)
+
+    return resp
+'''
+
+# ################### LOGOUT #################################
+
+
+'''
+@app.route('/account/logout')
+def logout():
+    resp = flask.redirect('/')
+    cookie_auth.logout(resp)
+
+    return resp
+'''
+
+# ################### PROFILE #################################
+
+
+@app.route('/profile')
+def profile():
+    return "Profile"
+
+
+# ################### MACHINE LEARNING #################################
 
 # Sets the global breeds_arr variable.
 def load_breeds():
@@ -229,6 +348,10 @@ def gen_breed():
     return breeds_arr[breed_index]
 
 
+# ################### RUN #################################
+
 if __name__ == '__main__':
     db.create_all()
-    app.run(host='0.0.0.0', port=8080)
+    app.run(debug=True)
+else:
+    db.create_all()

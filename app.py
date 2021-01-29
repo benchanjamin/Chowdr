@@ -1,18 +1,19 @@
 import requests
 import json
-from flask import Flask, render_template, redirect, url_for, request, session
-from flask_sqlalchemy import SQLAlchemy
+from flask import Flask, render_template, redirect, url_for, request, session, flash
 import numpy as np
 from random import randint
 import tensorflow as tf
 import os
 import datetime
-from flask_login import LoginManager
-from config import Config
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField
-from wtforms.validators import DataRequired, Length, EqualTo
+from wtforms.validators import ValidationError, DataRequired, Length, EqualTo, Email
+from werkzeug.security import generate_password_hash, check_password_hash
+from config import Config
+from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from flask_login import LoginManager, UserMixin, current_user, login_user, logout_user
 
 
 # ################### CONFIG #################################
@@ -29,17 +30,17 @@ app.config.from_object(Config)
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
-login_manager = LoginManager()
+login = LoginManager(app)
 model = -1  # initialized later
 breeds_arr = -1  # initialized later
-user = -1  # initialized on login
 
 # ################### DATABASE #################################
 
 
-class User(db.Model):
+class Users(UserMixin, db.Model):
+    __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    username = db.Column(db.String, nullable=True)
+    username = db.Column(db.String, unique=True, nullable=True)
     email = db.Column(db.String, index=True, unique=True, nullable=True)
     hashed_password = db.Column(db.String, nullable=True, index=True)
     created_date = db.Column(db.DateTime, default=datetime.datetime.now, index=True)
@@ -48,8 +49,14 @@ class User(db.Model):
     breed_scores = db.Column(db.String, nullable=True)
     like_to_dislike_ratio = db.Column(db.Float(precision=3), nullable=False, default=0)
 
+    def set_password(self, password):
+        self.hashed_password = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.hashed_password, password)
+
     def __repr__(self):
-        return '<User {}>'.format(self.username)
+        return '<Username: {}>'.format(self.username)
 
 
 # ################### INDEX #################################
@@ -60,7 +67,7 @@ def index_get():
     breed = gen_breed()
     user = None
     if 'email' in session:
-        user = User.query.filter_by(name=session["email"]).first()
+        user = Users.query.filter_by(username=session["email"]).first()
     if breed["species"] == "dog":
         url = 'https://dog.ceo/api/breed/' + breed["id"] + '/images/random'
         data = requests.get(url)
@@ -73,23 +80,15 @@ def index_get():
         image = data[0]["url"]
     print("GET", session.get('messages'))
 
-    if 'messages' in session:
-        messages = session['messages']
-        messages = json.loads(messages)
-        '''
-        try:
-          user = User.query.filter_by(name = messages["name"]).first()
-        except:
-          user = None
-        '''
     return render_template('image.html', url=image, breed_name=breed["name"], breed_id=breed["id"], user=user)
 
 
 @app.route('/', methods=['POST'])
 def index_post():
-    global user
+    user = -1
+    # global user
     if "email" in session:
-        user = User.query.filter_by(name=session['email']).first()
+        user = Users.query.filter_by(username=session['email']).first()
     if "breed_scores" not in session:
         in_file = open("ids.json")
         session["breed_scores"] = json.load(in_file)
@@ -104,9 +103,7 @@ def index_post():
         db.session.commit()
     load_model()
     update_model(request.form['breed_id'], request.form['submit_button'] == 'Right')
-
-    messagesDict = {}
-    messagesDict["show"] = False
+    messages_dict = {"show": False}
     if request.form['submit_button'] == 'Left':
         if user != -1:
             user.left_swipes = user.left_swipes + 1
@@ -117,12 +114,12 @@ def index_post():
             else:
                 user.like_to_dislike_ratio = round(user.right_swipes / user.left_swipes, 3)
                 db.session.commit()
-            messagesDict['show'] = True
-            messagesDict["name"] = user.name
-        messages = json.dumps(messagesDict)
+            messages_dict['show'] = True
+            messages_dict["name"] = user.username
+        messages = json.dumps(messages_dict)
         session['messages'] = messages
         print("POST", session.get('messages'))
-        return redirect(url_for('.index_get', messages=messages))
+        return redirect(url_for('.index_get'))
     elif request.form['submit_button'] == 'Right':
         if user != -1:
             user.right_swipes = user.right_swipes + 1
@@ -133,12 +130,12 @@ def index_post():
             else:
                 user.like_to_dislike_ratio = round(user.right_swipes / user.left_swipes, 3)
                 db.session.commit()
-            messagesDict['show'] = True
-            messagesDict["name"] = user.name
-        messages = json.dumps(messagesDict)
+            messages_dict['show'] = True
+            messages_dict["name"] = user.username
+        messages = json.dumps(messages_dict)
         session['messages'] = messages
         print("POST", session.get('messages'))
-        return redirect(url_for('.index_get', messages=messages))
+        return redirect(url_for('.index_get'))
     else:
         db.session.commit()
         return redirect(url_for('.index_get'))
@@ -153,24 +150,48 @@ class LoginForm(FlaskForm):
     submit = SubmitField('Log In')
 
 
+@login.user_loader
+def load_user(id):
+    return Users.query.get(int(id))
+
+
 @app.route('/login', methods=["GET"])
 def login_get():
+    if current_user.is_authenticated:
+        return redirect(url_for('index_get'))
     form = LoginForm()
     return render_template("login2.html", form=form)
 
 
 @app.route('/login', methods=['POST'])
 def login_post():
-    global user
+    # global user
+    form = LoginForm(request.form)
+    if form.validate():
+        user = Users.query.filter_by(username=form.username.data).first()
+        if user is None or not user.check_password(form.password.data):
+            flash('Invalid username or password')
+            return redirect(url_for('login_get'))
+        login_user(user, remember=form.remember_me.data)
+        session["breed_scores"] = json.loads(user.breed_scores)
+        load_model(email=user.username)
+        return redirect(url_for('index_get'))
+    return render_template('login2.html', form=form)
+
+
+    '''
     if request.form['submit_button'] == 'Login':
         # Needs validation here
-        user = User.query.filter_by(name=request.form['email']).first()
+        user = Users.query.filter_by(username=form.username.data).first()
         session["breed_scores"] = json.loads(user.breed_scores)
-        load_model(email=request.form['email'])
+        load_model(email=form.username.data)
         session["email"] = request.form['email']
+    '''
+
+    '''
     if request.form['submit_button'] == 'Register':
         # Needs validation here and make sure to cache password
-        user = User(name=request.form['email'])
+        user = Users(username=form.username.data)
         if "breed_scores" not in session:
             in_file = open("ids.json")
             session["breed_scores"] = json.load(in_file)
@@ -179,34 +200,53 @@ def login_post():
         db.session.add(user)
         db.session.commit()
         session["email"] = request.form['email']
+    '''
     return redirect(url_for('.index_get'))
-
-
-# Sets the global model variable.
-# On log in, this should load a previously saved model.
-# Otherwise, loads the base model.
-def load_model(email=None):
-    global model
-    if email != None:
-        print("LOGGED IN AS " + email)
-    if email != None and os.path.exists('./user_models/' + email + '_model'):
-        print("loaded old model")
-        model = tf.keras.models.load_model('./user_models/' + email + '_model')
-    elif model == -1:
-        model = tf.keras.models.load_model('./breed_model')
 
 
 # ################### REGISTER #################################
 
 class RegistrationForm(FlaskForm):
-    username = StringField('Username', [Length(min=4, max=25)])
-    email = StringField('Email Address', [Length(min=6, max=35)])
+    username = StringField('Username', validators=[Length(min=4, max=25)])
+    email = StringField('Email Address', validators=[Length(min=6, max=35), Email()])
     password = PasswordField('New Password', [
         DataRequired(),
         EqualTo('confirm', message='Passwords must match')
     ])
     confirm = PasswordField('Repeat Password')
     submit = SubmitField('Register')
+
+    def validate_username(self, username):
+        user = Users.query.filter_by(username=username.data).first()
+        if user is not None:
+            raise ValidationError('Please use a different username.')
+
+    def validate_email(self, email):
+        user = Users.query.filter_by(email=email.data).first()
+        if user is not None:
+            raise ValidationError('Please use a different email address.')
+
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        user = Users(username=form.username.data, email=form.email.data)
+        user.set_password(form.password.data)
+        db.session.add(user)
+        db.session.commit()
+        flash('Congratulations, you are now a registered user!')
+        if "breed_scores" not in session:
+            in_file = open("ids.json")
+            session["breed_scores"] = json.load(in_file)
+        breed_scores = session.get("breed_scores")
+        user.breed_scores = json.dumps(breed_scores)
+        db.session.commit()
+        session["email"] = form.username.data
+        return redirect(url_for('login_get'))
+    return render_template('register.html', title='Register', form=form)
 
 
 '''
@@ -256,6 +296,11 @@ def register_post():
 # ################### LOGOUT #################################
 
 
+@app.route('/logout')
+def logout():
+    logout_user()
+    return redirect(url_for('index_get'))
+
 '''
 @app.route('/account/logout')
 def logout():
@@ -274,6 +319,20 @@ def profile():
 
 
 # ################### MACHINE LEARNING #################################
+
+# Sets the global model variable.
+# On log in, this should load a previously saved model.
+# Otherwise, loads the base model.
+def load_model(email=None):
+    global model
+    if email != None:
+        print("LOGGED IN AS " + email)
+    if email != None and os.path.exists('./user_models/' + email + '_model'):
+        print("loaded old model")
+        model = tf.keras.models.load_model('./user_models/' + email + '_model')
+    elif model == -1:
+        model = tf.keras.models.load_model('./breed_model')
+
 
 # Sets the global breeds_arr variable.
 def load_breeds():
@@ -351,6 +410,4 @@ def gen_breed():
 
 if __name__ == '__main__':
     db.create_all()
-    app.run(debug=True)
-else:
-    db.create_all()
+    app.run(host='0.0.0.0', port=8080)

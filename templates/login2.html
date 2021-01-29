@@ -13,9 +13,15 @@
           <div class="container">
             <ul>
               <li class="nav-link" onclick="location.href='/';">Home</li>
-              <li class="nav-link" onclick="location.href='profile';">Profile</li>
+              {% if current_user.is_authenticated %}
+              <li class="nav-link" onclick="location.href='/profile';">Profile</li>
+              {% endif %}
+              {% if current_user.is_anonymous %}
+              <li class="nav-link" onclick="location.href='/register';">Register</li>
               <li class="nav-link" onclick="location.href='/login';">Log In</li>
-              <li class="nav-link" onclick="location.href='/login';">Register</li>
+              {% else %}
+              <li class="nav-link" onclick="location.href='/logout';">Logout</li>
+              {% endif %}
             </ul>
           </div>
         </div>
@@ -24,17 +30,21 @@
 
     <h1>Log In</h1>
     <div class="form-container">
-      <form action="{{ url_for('login_post') }}" method="POST" class="account-form" novalidate>
-      {{ form.hidden_tag() }}
-        {{ form.username(class = "form-control", placeholder = "Username") }}
-        {{ form.password(class = "form-control", placeholder = "Password") }}
+        <form action="{{ url_for('login_post') }}" method="POST" class="account-form" novalidate>
+        {{ form.hidden_tag() }}
+            {{ form.username(class = "form-control", placeholder = "Username") }}
+            {{ form.password(class = "form-control", placeholder = "Password") }}
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for message in messages %}
+                        <span style="color: red;">[{{ message }}]</span>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
         <button onclick="location.href='/';" class="btn reg" type="button">Back</button>
           {{ form.submit(class= "btn back") }}
         <div style="clear: both;"></div>
 
-            {% if error %}
-                <div class="error-msg">{{ error }}</div>
-            {% endif %}
         </form>
     </div>
 </body>

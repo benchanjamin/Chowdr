@@ -17,9 +17,15 @@
         <div class="container">
             <ul>
               <li class="nav-link" onclick="location.href='/';">Home</li>
-              <li class="nav-link" onclick="location.href='profile';">Profile</li>
+              {% if current_user.is_authenticated %}
+              <li class="nav-link" onclick="location.href='/profile';">Profile</li>
+              {% endif %}
+              {% if current_user.is_anonymous %}
+              <li class="nav-link" onclick="location.href='/register';">Register</li>
               <li class="nav-link" onclick="location.href='/login';">Log In</li>
-              <li class="nav-link" onclick="location.href='/login';">Register</li>
+              {% else %}
+              <li class="nav-link" onclick="location.href='/logout';">Logout</li>
+              {% endif %}
             </ul>
         </div>
       </div>
@@ -30,7 +36,7 @@
     <form method="POST">
       <button class="btn left" type="submit" name="submit_button" value="Left">&lt</button>
       <div class="polaroid">
-        <img class="dog" id="image" src='{{ url }}'>
+        <img alt='A picture of a cute animal' class="dog" id="image" src='{{ url }}'>
         <div class="container">
           <p>Say hi to this {{breed_name}}!</p>
         </div>
@@ -40,11 +46,11 @@
     </form>
   </div>
 
-{% if user %}
-  <h1>Your Like to Dislike Ratio: {{ user.like_to_dislike_ratio }}</h1>
+{% if current_user.is_authenticated %}
+  <h1>Your Like to Dislike Ratio: {{ current_user.like_to_dislike_ratio }}</h1>
 {% endif %}
 
-{% if not user %}
+{% if current_user.is_anonymous %}
   <h1>Please register or login to save your data</h1>
 {% endif %}
 

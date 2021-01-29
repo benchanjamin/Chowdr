@@ -13,21 +13,41 @@
           <div class="container">
             <ul>
               <li class="nav-link" onclick="location.href='/';">Home</li>
-              <li class="nav-link" onclick="location.href='profile';">Profile</li>
+              {% if current_user.is_authenticated %}
+              <li class="nav-link" onclick="location.href='/profile';">Profile</li>
+              {% endif %}
+              {% if current_user.is_anonymous %}
+              <li class="nav-link" onclick="location.href='/register';">Register</li>
               <li class="nav-link" onclick="location.href='/login';">Log In</li>
-              <li class="nav-link" onclick="location.href='/login';">Register</li>
+              {% else %}
+              <li class="nav-link" onclick="location.href='/logout';">Logout</li>
+              {% endif %}
             </ul>
           </div>
         </div>
       </div>
     </div>
 
-    <h1>Log In</h1>
+    <h1>Register</h1>
     <div class="form-container">
-      <form action="{{ url_for('register_post') }}" method="POST" class="account-form" novalidate>
+      <form action="{{ url_for('register') }}" method="POST" class="account-form" novalidate>
       {{ form.hidden_tag() }}
         {{ form.username(class = "form-control", placeholder = "Username") }}
+            {% for error in form.username.errors %}
+                <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        {{ form.email(class = "form-control", placeholder = "Email") }}
+            {% for error in form.email.errors %}
+                <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
         {{ form.password(class = "form-control", placeholder = "Password") }}
+            {% for error in form.password.errors %}
+                <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        {{ form.confirm(class = "form-control", placeholder = "Repeat Password") }}
+            {% for error in form.confirm.errors %}
+                <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
         <button onclick="location.href='/';" class="btn reg" type="button">Back</button>
           {{ form.submit(class= "btn back") }}
         <div style="clear: both;"></div>

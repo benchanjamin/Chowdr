@@ -9,3 +9,5 @@ requests~=2.25.1
 numpy~=1.19.5
 WTForms~=2.3.3
 flask-migrate
+email-validator
+pyOpenSSL

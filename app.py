@@ -34,7 +34,6 @@ model = -1  # initialized later
 breeds_arr = -1  # initialized later
 user = -1  # initialized on login
 
-
 # ################### DATABASE #################################
 
 
